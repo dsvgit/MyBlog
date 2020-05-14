@@ -1,0 +1,49 @@
+﻿@model MyBlog.Core.Models.Post
+@{
+    ViewData["Title"] = "Мой блог - Создать пост";
+}
+
+@section toolbar {
+    <a class="nav-link text-primary" href="~/Posts/Show/@Model.Id">Читать</a>
+    <a class="nav-link text-primary" data-id="@Model.Id" href="#" onclick="deletePost(this)">Удалить</a>
+}
+
+<h3>@Model.Title - редактировать</h3>
+
+<form method="post">
+    <input type="hidden" value="@Model.Id" name="Id"/>
+    <div class="form-group">
+        <label for="postTitle">Название</label>
+        <input type="text" class="form-control" id="postTitle" name="Title" value="@Model.Title">
+    </div>
+    <div class="form-group">
+        <label for="postText">Текст</label>
+        <textarea class="form-control" id="postText" rows="20" name="Text">@Model.Text</textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+</form>
+
+@section scripts {
+    <script>
+        //window.onbeforeunload = function () {
+        //    return true;
+        //};
+        
+        function deletePost(element) {
+            if (!confirm("Вы уверены, что хотите удалить этот пост?")) {
+                return;
+            }
+            
+            var id = element.getAttribute("data-id");
+            var url = window.location.origin + "/Posts/Delete/";
+            var xhr = new XMLHttpRequest();
+            xhr.open("DELETE", url + id, true);
+            xhr.onload = function () {
+                if (xhr.readyState == 4 && xhr.status == "200") {
+                    window.location.pathname = "Posts";
+                }
+            }
+            xhr.send(null);
+        }
+    </script>
+}

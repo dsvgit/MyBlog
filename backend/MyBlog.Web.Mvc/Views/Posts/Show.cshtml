@@ -1,0 +1,38 @@
+﻿@model MyBlog.Core.Models.Post
+@{
+    ViewData["Title"] = "Мой блог - Пост";
+}
+
+@section toolbar {
+    @if (User.Identity.IsAuthenticated)
+    {
+        <a class="nav-link text-primary" href="~/Posts/Edit/@Model.Id">Редактировать</a>
+        <a class="nav-link text-primary" data-id="@Model.Id" href="#" onclick="deletePost(this)">Удалить</a>
+    }
+}
+
+<h3>@Model.Title</h3>
+<p>
+    <pre>@Model.Text</pre>
+</p>
+
+@section headScripts {
+    <script>
+        function deletePost(element) {
+            if (!confirm("Вы уверены, что хотите удалить этот пост?")) {
+                return;
+            }
+            
+            var id = element.getAttribute("data-id");
+            var url = window.location.origin + "/Posts/Delete/";
+            var xhr = new XMLHttpRequest();
+            xhr.open("DELETE", url + id, true);
+            xhr.onload = function () {
+                if (xhr.readyState == 4 && xhr.status == "200") {
+                    window.location.pathname = "Posts";
+                }
+            }
+            xhr.send(null);
+        }
+    </script>
+}

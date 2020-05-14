@@ -1,0 +1,21 @@
+﻿<h3>Новый пост</h3>
+
+<form method="post">
+    <div class="form-group">
+        <label for="postTitle">Название</label>
+        <input type="text" class="form-control" id="postTitle" name="Title">
+    </div>
+    <div class="form-group">
+        <label for="postText">Текст</label>
+        <textarea class="form-control" id="postText" rows="20" name="Text"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Создать</button>
+</form>
+
+@section scripts {
+    <script>
+        //window.onbeforeunload = function () {
+        //    return true;
+        //};
+    </script>
+}

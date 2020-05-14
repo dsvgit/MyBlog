@@ -1,0 +1,15 @@
+{
+  "name": "my-blog",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "start:admin": "yarn workspace my-blog-admin start",
+    "build:admin": "yarn workspace my-blog-admin build"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  }
+}
