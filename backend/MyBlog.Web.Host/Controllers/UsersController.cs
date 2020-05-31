@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MyBlog.Core.ApiModels.User;
 using MyBlog.Core.DtoModels;
 using MyBlog.Core.Models;
 using MyBlog.Core.ViewModels;
@@ -17,6 +18,7 @@ namespace MyBlog.Web.Host.Controllers
     {
         private readonly BlogDbContext db;
         private readonly UserManager<User> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
         public UsersController(BlogDbContext context, UserManager<User> userManager)
         {
@@ -26,11 +28,12 @@ namespace MyBlog.Web.Host.Controllers
 
         [HttpGet]
         [Route("getList")]
-        public async Task<ActionResult<PagedResultDto<User>>> GetList([FromQuery] GetAllViewModel getAllViewModel)
+        public async Task<ActionResult<PagedResultDto<User>>> GetList(
+            [FromQuery] GetAllViewModel getAllViewModel)
         {
             var total = db.Users.Count();
             var users = await db.Users.AsQueryable()
-                .Skip(getAllViewModel.Page)
+                .Skip(getAllViewModel.Skip)
                 .Take(getAllViewModel.Size)
                 .ToListAsync();
 
@@ -43,11 +46,23 @@ namespace MyBlog.Web.Host.Controllers
 
         [HttpGet]
         [Route("getOne")]
-        public async Task<ActionResult<User>> GetOne([FromQuery] GetOneViewModel getOneViewModel)
+        public async Task<ActionResult<ShowUserModel>> GetOne([FromQuery] GetOneViewModel getOneViewModel)
         {
-            var user = await db.Users.FindAsync(getOneViewModel.Id);
+            var user = await _userManager.FindByIdAsync(getOneViewModel.Id);
 
-            return user;
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+
+            return new ShowUserModel
+            {
+                Id = user.Id,
+                Email = user.Email,
+                RoleIds = userRoles
+            };
         }
 
         [HttpGet]
@@ -63,24 +78,54 @@ namespace MyBlog.Web.Host.Controllers
 
         [HttpGet]
         [Route("getManyReference")]
-        public async Task<ActionResult<PagedResultDto<User>>> GetManyReference([FromQuery] GetAllViewModel getAllViewModel)
+        public async Task<ActionResult<PagedResultDto<User>>> GetManyReference(
+            [FromQuery] GetAllViewModel getAllViewModel)
         {
             return await GetList(getAllViewModel); // just mock
         }
 
         [HttpPost]
         [Route("create")]
-        public async Task<IActionResult> Create(UserDto userDto)
+        public async Task<IActionResult> Create([FromBody] CreateUserModel createUserModel)
         {
-            var user = new User {Email = userDto.Email, UserName = userDto.Email};
-            var result = await _userManager.CreateAsync(user, userDto.Password);
+            var user = new User {Email = createUserModel.Email, UserName = createUserModel.Email};
+            var result = await _userManager.CreateAsync(user, createUserModel.Password);
+
+            if (createUserModel.RoleIds != null && createUserModel.RoleIds.Any())
+            {
+                await _userManager.AddToRolesAsync(user, createUserModel.RoleIds);
+            }
 
             if (result.Succeeded)
             {
                 return CreatedAtAction(nameof(GetOne), new {id = user.Id}, user);
             }
-           
+
             return BadRequest();
+        }
+
+        [HttpPut]
+        [Route("update/{id}")]
+        public async Task<IActionResult> Update(string id, [FromBody] UpdateUserModel updateUserModel)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+
+            if (updateUserModel.RoleIds != null && updateUserModel.RoleIds.Any())
+            {
+                var roles = updateUserModel.RoleIds;
+                
+                var userRoles = await _userManager.GetRolesAsync(user);
+                
+                var addedRoles = roles.Except(userRoles);
+                var removedRoles = userRoles.Except(roles);
+                
+                await _userManager.AddToRolesAsync(user, addedRoles);
+                await _userManager.RemoveFromRolesAsync(user, removedRoles);
+            }
+            
+            var updatedUser = await _userManager.FindByIdAsync(id);
+
+            return Ok(updatedUser);
         }
     }
 }

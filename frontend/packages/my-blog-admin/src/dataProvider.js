@@ -36,9 +36,9 @@ export default (apiUrl, httpClient = fetchUtils.fetchJson) => ({
   },
   getMany: (resource, params) => {
     const query = {
-      filter: JSON.stringify({ id: params.ids }),
+      ids: params.ids,
     };
-    const url = `${apiUrl}/${resource}?${stringify(query)}`;
+    const url = `${apiUrl}/${resource}/getMany?${stringify(query)}`;
     return httpClient(url).then(({ json }) => ({ data: json }));
   },
   getManyReference: (resource, params) => {
@@ -53,7 +53,7 @@ export default (apiUrl, httpClient = fetchUtils.fetchJson) => ({
         })
       ),
     };
-    const url = `${apiUrl}/${resource}?${stringify(query)}`;
+    const url = `${apiUrl}/${resource}/getManyReference?${stringify(query)}`;
     return httpClient(url).then(({ headers, json }) => {
       if (!headers.has("content-range")) {
         throw new Error(
@@ -67,7 +67,7 @@ export default (apiUrl, httpClient = fetchUtils.fetchJson) => ({
     });
   },
   update: (resource, params) =>
-    httpClient(`${apiUrl}/${resource}/${params.id}`, {
+    httpClient(`${apiUrl}/${resource}/update/${params.id}`, {
       method: "PUT",
       body: JSON.stringify(params.data),
     }).then(({ json }) => ({ data: json })),
@@ -82,7 +82,7 @@ export default (apiUrl, httpClient = fetchUtils.fetchJson) => ({
       )
     ).then((responses) => ({ data: responses.map(({ json }) => json.id) })),
   create: (resource, params) =>
-    httpClient(`${apiUrl}/${resource}`, {
+    httpClient(`${apiUrl}/${resource}/create`, {
       method: "POST",
       body: JSON.stringify(params.data),
     }).then(({ json }) => ({
