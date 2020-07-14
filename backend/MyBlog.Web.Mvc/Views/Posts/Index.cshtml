@@ -10,14 +10,6 @@
     }
 }
 
-<ul class="list-unstyled">
-    @foreach (var post in Model)
-    {
-        <li class="media mb-4">
-            <div class="media-body">
-                <a class="h5 mt-0 mb-1 d-block" href="~/Posts/Show/@post.Id">@post.Title</a>
-                @post.Text
-            </div>
-        </li>
-    }
-</ul>
+@Html.React("Components.PostsIndex", new {
+    initialData = Model
+})

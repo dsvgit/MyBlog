@@ -11,6 +11,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using MyBlog.Core.Models;
 using MyBlog.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
+using JavaScriptEngineSwitcher.ChakraCore;
+using JavaScriptEngineSwitcher.Extensions.MsDependencyInjection;
+using React.AspNet;
 
 namespace MyBlog.Web.Mvc
 {
@@ -47,6 +51,13 @@ namespace MyBlog.Web.Mvc
                 })
                 .AddEntityFrameworkStores<BlogDbContext>();
 
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddReact();
+
+            services
+                .AddJsEngineSwitcher(options => options.DefaultEngineName = ChakraCoreJsEngine.EngineName)
+                .AddChakraCore();
+
             services.AddControllersWithViews().AddRazorRuntimeCompilation();
         }
 
@@ -67,6 +78,27 @@ namespace MyBlog.Web.Mvc
                 DefaultRequestCulture = new RequestCulture("ru-RU"),
                 SupportedCultures = supportedCultures,
                 SupportedUICultures = supportedCultures
+            });
+
+            app.UseReact(config =>
+            {
+                // If you want to use server-side rendering of React components,
+                // add all the necessary JavaScript files here. This includes
+                // your components as well as all of their dependencies.
+                // See http://reactjs.net/ for more information. Example:
+                config
+                    .SetReuseJavaScriptEngines(true)
+                    .SetLoadBabel(false)
+                    .SetLoadReact(false)
+                    .SetReactAppBuildPath("~/dist");
+
+                // If you use an external build too (for example, Babel, Webpack,
+                // Browserify or Gulp), you can improve performance by disabling
+                // ReactJS.NET's version of Babel and loading the pre-transpiled
+                // scripts. Example:
+                //config
+                //  .SetLoadBabel(false)
+                //  .AddScriptWithoutTransform("~/js/bundle.server.js");
             });
 
             app.UseStaticFiles();
