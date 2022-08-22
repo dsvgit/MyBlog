@@ -24,7 +24,6 @@ namespace MyBlog.Web.Mvc.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginModel model)
         {
             if (ModelState.IsValid)
@@ -53,7 +52,7 @@ namespace MyBlog.Web.Mvc.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = new User {Email = model.Email, UserName = model.Email};
+                var user = new User { Email = model.Email, UserName = model.Email };
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
